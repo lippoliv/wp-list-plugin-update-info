@@ -1,17 +1,18 @@
 prefix="plugins/"
 
 function checkoutPlugin() {
+  [ -d "$prefix$1" ] || svn checkout "https://plugins.svn.wordpress.org/$1/tags/" "$prefix$1" --depth empty -q
+
   for tag in $(svn list "https://plugins.svn.wordpress.org/$1/tags"); do
     [ ! -d "$prefix$1/$tag" ] || continue
 
     echo "$1/$tag"
-    mkdir -p "$prefix$1/$tag"
-    svn checkout "https://plugins.svn.wordpress.org/$1/tags/$tag" "$prefix$1/$tag" --depth empty -q
+    svn up "$prefix$1/$tag" --depth empty -q
     svn up "$prefix$1/$tag/readme.txt" -q
-    svn up "$prefix$1/$tag/README.txt" -q
 
+    [ ! -f "$prefix$1/$tag/readme.txt" ] || continue
     # If readme is uppercase, lowercase the filename (WSL-safe)
-    [ -f "$prefix$1/$tag/README.txt" ] || continue
+    svn up "$prefix$1/$tag/README.txt" -q
     mv "$prefix$1/$tag/README.txt" "$prefix$1/$tag/readme2.txt"
     mv "$prefix$1/$tag/readme2.txt" "$prefix$1/$tag/readme.txt"
   done
