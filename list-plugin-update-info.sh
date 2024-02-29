@@ -15,6 +15,11 @@ function checkoutPlugin() {
     svn up "$prefix$1/$tag/README.txt" -q
     mv "$prefix$1/$tag/README.txt" "$prefix$1/$tag/readme2.txt"
     mv "$prefix$1/$tag/readme2.txt" "$prefix$1/$tag/readme.txt"
+
+    [ ! -f "$prefix$1/$tag/readme.txt" ] || continue
+    # If readme still is missing, maybe they use readme.md
+    svn up "$prefix$1/$tag/readme.md" -q
+    mv "$prefix$1/$tag/readme.md" "$prefix$1/$tag/readme.txt"
   done
 }
 
