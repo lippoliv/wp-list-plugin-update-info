@@ -1,5 +1,10 @@
 prefix="plugins/"
 
+if [ -f .env ];
+then
+  source .env
+fi
+
 function checkoutPlugin() {
   [ -d "$prefix$1" ] || svn checkout "https://plugins.svn.wordpress.org/$1/tags/" "$prefix$1" --depth empty -q
 
