@@ -1,5 +1,7 @@
 prefix="plugins/"
 
+OUTPUT_SUMMARY=true
+
 if [ -f .env ];
 then
   source .env
@@ -42,4 +44,7 @@ function listVersions() {
 }
 
 checkoutPlugin "$1"
-listVersions "$1" "$2"
+
+if [ $OUTPUT_SUMMARY == true ]; then
+  listVersions "$1" "$2"
+fi
