@@ -13,6 +13,11 @@ fi
 function checkoutPlugin() {
   [ -d "$prefix$1" ] || svn checkout "https://plugins.svn.wordpress.org/$1/tags/" "$prefix$1" --depth empty -q
 
+  err=$?
+  if [ ! $err == 0 ] ; then
+    exit 1
+  fi
+
   for tag in $(svn list "https://plugins.svn.wordpress.org/$1/tags"); do
     tag=${tag%?}
     [ ! -d "$prefix$1/$tag" ] || continue
@@ -25,7 +30,7 @@ function checkoutPlugin() {
     svn up "$prefix$1/$tag/readme.txt" -q > /dev/null
 
     svn up "$prefix$1/$tag/$1.php" -q > /dev/null
-    mv "$prefix$1/$tag/$1.php" "$prefix$1/$tag/plugin.php"
+    mv "$prefix$1/$tag/$1.php" "$prefix$1/$tag/plugin.php" > /dev/null
 
     if [ ! -f "$prefix$1/$tag/readme.txt" ]; then
       # If readme is uppercase, lowercase the filename (WSL-safe)
@@ -51,8 +56,8 @@ function checkoutPlugin() {
     if [ $DOWNLOAD_PLUGIN_ARCHIVE == true ]; then
       curl -s "https://downloads.wordpress.org/plugin/$1.$tag.zip" -o "$prefix$1/$tag/plugin.zip" --fail
 
-      curlExitCode=$?
-      if [ ! $curlExitCode == 0 ] ; then
+      err=$?
+      if [ ! $err == 0 ] ; then
         echo "- Plugin download failed"
       fi
     fi
