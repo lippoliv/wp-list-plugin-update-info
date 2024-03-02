@@ -1,6 +1,7 @@
 prefix="plugins/"
 
 OUTPUT_SUMMARY=true
+LOG_OUTPUT=true
 
 if [ -f .env ];
 then
@@ -13,20 +14,23 @@ function checkoutPlugin() {
   for tag in $(svn list "https://plugins.svn.wordpress.org/$1/tags"); do
     [ ! -d "$prefix$1/$tag" ] || continue
 
-    echo "$1/$tag"
-    svn up "$prefix$1/$tag" --depth empty -q
-    svn up "$prefix$1/$tag/readme.txt" -q
+    if [ $LOG_OUTPUT == true ]; then
+      echo "$1/$tag"
+    fi
+
+    svn up "$prefix$1/$tag" --depth empty -q > /dev/null
+    svn up "$prefix$1/$tag/readme.txt" -q > /dev/null
 
     [ ! -f "$prefix$1/$tag/readme.txt" ] || continue
     # If readme is uppercase, lowercase the filename (WSL-safe)
-    svn up "$prefix$1/$tag/README.txt" -q
-    mv "$prefix$1/$tag/README.txt" "$prefix$1/$tag/readme2.txt"
-    mv "$prefix$1/$tag/readme2.txt" "$prefix$1/$tag/readme.txt"
+    svn up "$prefix$1/$tag/README.txt" -q > /dev/null
+    mv "$prefix$1/$tag/README.txt" "$prefix$1/$tag/readme2.txt" > /dev/null
+    mv "$prefix$1/$tag/readme2.txt" "$prefix$1/$tag/readme.txt" > /dev/null
 
     [ ! -f "$prefix$1/$tag/readme.txt" ] || continue
     # If readme still is missing, maybe they use readme.md
-    svn up "$prefix$1/$tag/readme.md" -q
-    mv "$prefix$1/$tag/readme.md" "$prefix$1/$tag/readme.txt"
+    svn up "$prefix$1/$tag/readme.md" -q > /dev/null
+    mv "$prefix$1/$tag/readme.md" "$prefix$1/$tag/readme.txt" > /dev/null
   done
 }
 
