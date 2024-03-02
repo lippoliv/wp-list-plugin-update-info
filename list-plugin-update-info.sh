@@ -24,6 +24,9 @@ function checkoutPlugin() {
     svn up "$prefix$1/$tag" --depth empty -q > /dev/null
     svn up "$prefix$1/$tag/readme.txt" -q > /dev/null
 
+    svn up "$prefix$1/$tag/$1.php" -q > /dev/null
+    mv "$prefix$1/$tag/$1.php" "$prefix$1/$tag/plugin.php"
+
     if [ ! -f "$prefix$1/$tag/readme.txt" ]; then
       # If readme is uppercase, lowercase the filename (WSL-safe)
       svn up "$prefix$1/$tag/README.txt" -q > /dev/null
@@ -40,6 +43,9 @@ function checkoutPlugin() {
     if [ $TRIM_LINES -gt 0 ]; then
       trimmedContent=$(head -n $TRIM_LINES "$prefix$1/$tag/readme.txt")
       echo "$trimmedContent" > "$prefix$1/$tag/readme.txt"
+
+      trimmedContent=$(head -n $TRIM_LINES "$prefix$1/$tag/plugin.php")
+      echo "$trimmedContent" > "$prefix$1/$tag/plugin.php"
     fi
 
     if [ $DOWNLOAD_PLUGIN_ARCHIVE == true ]; then
@@ -53,15 +59,47 @@ function checkoutPlugin() {
   done
 }
 
+function getVersionValue() {
+  label=$1
+  file=$2
+
+  line=$(grep "$label" "$file" | cut -d ":" -f 2 | awk '{$1=$1};1')
+  echo "$line"
+}
+
 function listVersions() {
   for f in $(find "$prefix$1" -maxdepth 1 -type d | grep "/$2" | sort --version-sort); do
     [ -f "$f/readme.txt" ] || continue
 
     echo "$f"
     svn info "$f" | grep "Changed Date"
-    grep "Requires at least:" "$f/readme.txt"
-    grep "Tested up to:" "$f/readme.txt"
-    grep "Requires PHP:" "$f/readme.txt"
+
+    txtMinWp=$(getVersionValue "Requires at least:" "$f/readme.txt")
+    txtTesteUpTo=$(getVersionValue "Tested up to:" "$f/readme.txt")
+    txtMinPhp=$(getVersionValue "Requires PHP:" "$f/readme.txt")
+
+    if [ -f "$f/plugin.php" ]; then
+      phpMinWp=$(getVersionValue "Requires at least:" "$f/plugin.php")
+      phpTesteUpTo=$(getVersionValue "Tested up to:" "$f/plugin.php")
+      phpMinPhp=$(getVersionValue "Requires PHP:" "$f/plugin.php")
+
+      if [ "$phpMinWp" != "" ]; then
+        phpMinWp="/ $phpMinWp"
+      fi
+
+      if [ "$phpTesteUpTo" != "" ]; then
+        phpTesteUpTo="/ $phpTesteUpTo"
+      fi
+
+      if [ "$phpMinPhp" != "" ]; then
+        phpMinPhp="/ $phpMinPhp"
+      fi
+    fi
+
+    echo "Min WP Version: $txtMinWp $phpMinWp"
+    echo "Max tested WP Version: $txtTesteUpTo $phpTesteUpTo"
+    echo "Min PHP Version: $txtMinPhp $phpMinPhp"
+
     echo " "
   done
 }
