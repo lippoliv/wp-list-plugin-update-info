@@ -3,6 +3,7 @@ prefix="plugins/"
 OUTPUT_SUMMARY=true
 LOG_OUTPUT=true
 DOWNLOAD_PLUGIN_ARCHIVE=false
+TRIM_LINES=0
 
 if [ -f .env ];
 then
@@ -34,6 +35,11 @@ function checkoutPlugin() {
       # If readme still is missing, maybe they use readme.md
       svn up "$prefix$1/$tag/readme.md" -q > /dev/null
       mv "$prefix$1/$tag/readme.md" "$prefix$1/$tag/readme.txt" > /dev/null
+    fi
+
+    if [ $TRIM_LINES -gt 0 ]; then
+      trimmedContent=$(head -n $TRIM_LINES "$prefix$1/$tag/readme.txt")
+      echo "$trimmedContent" > "$prefix$1/$tag/readme.txt"
     fi
 
     if [ $DOWNLOAD_PLUGIN_ARCHIVE == true ]; then
