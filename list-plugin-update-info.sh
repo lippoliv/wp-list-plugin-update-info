@@ -11,7 +11,7 @@ then
 fi
 
 function checkoutPlugin() {
-  [ -d "$prefix$1" ] || svn checkout "https://plugins.svn.wordpress.org/$1/tags/" "$prefix$1" --depth empty -q
+  svn checkout "https://plugins.svn.wordpress.org/$1/tags/" "$prefix$1" --depth empty -q
 
   err=$?
   if [ ! $err == 0 ] ; then
