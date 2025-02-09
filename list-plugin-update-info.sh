@@ -30,7 +30,30 @@ function checkoutPlugin() {
     svn up "$prefix$1/$tag/readme.txt" -q > /dev/null
 
     svn up "$prefix$1/$tag/$1.php" -q > /dev/null
-    mv "$prefix$1/$tag/$1.php" "$prefix$1/$tag/plugin.php" > /dev/null
+    if [ -f "$prefix$1/$tag/plugin.php" ]; then
+      mv "$prefix$1/$tag/$1.php" "$prefix$1/$tag/plugin.php" > /dev/null
+    fi
+
+    if [ ! -f "$prefix$1/$tag/plugin.php" ]; then
+      phpfilenames=$(svn list "$prefix$1/$tag" | grep ".php")
+      for phpfile in $phpfilenames; do
+          # checkout php files in root folder and limit to first 50 lines
+          svn up "$prefix$1/$tag/$phpfile" -q > /dev/null
+          head -n 50 "$prefix$1/$tag/$phpfile" > "$prefix$1/$tag/$phpfile.tmp"
+          mv "$prefix$1/$tag/$phpfile.tmp" "$prefix$1/$tag/$phpfile"
+
+          # search for "Plugin Name" (WordPress plugin marker)
+          line_count=$(grep -c "Plugin Name" "$prefix$1/$tag/$phpfile")
+
+          # if not found, delete the file. If found, rename to "plugin.php" and stop scanning for more
+          if [ "$line_count" -eq 0 ]; then
+              rm "$prefix$1/$tag/$phpfile" > /dev/null
+          else
+              mv "$prefix$1/$tag/$phpfile" "$prefix$1/$tag/plugin.php" > /dev/null
+              break
+          fi
+      done
+    fi
 
     if [ ! -f "$prefix$1/$tag/readme.txt" ]; then
       # If readme is uppercase, lowercase the filename (WSL-safe)
